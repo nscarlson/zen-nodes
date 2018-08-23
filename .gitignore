@@ -1,0 +1,4 @@
+.terraform.tfstate.lock.info
+*.tfstate
+*.backup
+zen.tfplan

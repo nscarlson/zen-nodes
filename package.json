@@ -1,0 +1,22 @@
+{
+  "name": "zen-nodes",
+  "version": "1.0.0",
+  "description": "Unattended setup for zen secure and super nodes infrastructure",
+  "main": "index.js",
+  "scripts": {
+    "apply": "terraform apply -auto-approve zen.tfplan",
+    "destroy": "terraform destroy -auto-approve",
+    "plan": "terraform plan -out=zen.tfplan",
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+ssh://git@gitlab.com/nscarlson/zen-nodes.git"
+  },
+  "author": "Nathan Carlson",
+  "license": "MIT",
+  "bugs": {
+    "url": "https://gitlab.com/nscarlson/zen-nodes/issues"
+  },
+  "homepage": "https://gitlab.com/nscarlson/zen-nodes#README"
+}
