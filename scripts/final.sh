@@ -1,14 +1,15 @@
 #!/bin/bash
 
-# Set an environment variable to match the Fully-Qualified Domain Name of the node
-FQDN=$1
-IPV4=$2
+# Installation variables
+STAKEADDR=${1}
+EMAIL=${2}
+FQDN=${3}
+REGION=${4}
+NODETYPE=${5}
+IPV4=$(dig $FQDN A +short)
 
 echo "chown blocks and chainstate folders recursively to the ${USER}"
 sudo chown -R $USER ~/.zen/{blocks,chainstate}
-
-echo "Start the zen daemon with rescanning"
-zend --rescan && sleep 30
 
 echo "Create basic firewall rules"
 sudo ufw default allow outgoing
@@ -45,18 +46,15 @@ echo "Allow the non-root user for zend access to the cert and private key"
 sudo chown -R root:sudo /etc/letsencrypt/
 sudo chmod -R 750 /etc/letsencrypt/
 
-echo "Stop and start zend to pick up the new config, cert, and private key"
-zend && sleep 30
-
-# Output network info
-zen-cli getnetworkinfo
+# # Output network info
+# zen-cli getnetworkinfo
 
 ##########################################################
 
-echo "Generate one new t_address"
-zen-cli getnewaddress > /dev/null && zen-cli listaddresses | jq -r '.[1]'
+# echo "Generate one new t_address"
+# zen-cli getnewaddress > /dev/null && zen-cli listaddresses | jq -r '.[1]'
 
-t_address=`zen-cli listaddresses | jq -r '.[1]'`
+# t_address=`zen-cli listaddresses | jq -r '.[1]'`
 
 # Prompt admin to send 0.05 ZEN to newly-generated t_address
 echo "***********************************"
@@ -81,10 +79,37 @@ echo "Change directory (cd) to where the software has been cloned"
 cd nodetracker
 
 echo "Create nodetracker config directory"
-mkdir config
+mkdir config && cd config
 
-echo "Copy nodetracker config previously rendered from template"
-cp $HOME/nodetracker_config.json ./config/config.json
+echo "Create the config file for nodetracker"
+cat << EOF > config.json
+{
+ "active": "${NODETYPE}",
+ "${NODETYPE}": {
+  "nodetype": "${NODETYPE}",
+  "nodeid": null,
+  "servers": [
+   "ts2.eu",
+   "ts1.eu",
+   "ts3.eu",
+   "ts4.eu",
+   "ts4.na",
+   "ts3.na",
+   "ts2.na",
+   "ts1.na"
+  ],
+  "stakeaddr": "${STAKEADDR}",
+  "email": "${EMAIL}",
+  "fqdn": "${FQDN}",
+  "ipv": "4",
+  "region": "${REGION}",
+  "home": "ts1.${REGION}",
+  "category": "none"
+ }
+}
+EOF
+
+cat config.json
 
 # Install the node tracker with npm
 npm install > /dev/null
@@ -124,7 +149,7 @@ RestartSec=10
 WantedBy=multi-user.target" | sudo tee /lib/systemd/system/zentracker.service
 
 echo "Stop zend and apply ownership to the non-root user of all files created earlier"
-zen-cli stop && sleep 30 && sudo chown -R $USER:$USER $HOME/
+sudo chown -R $USER:$USER $HOME/
 
 echo "Start zend and nodetracker using the new systemd unit files"
 sudo systemctl start zend zentracker

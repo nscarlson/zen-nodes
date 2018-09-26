@@ -46,11 +46,18 @@ resource "scaleway_server" "zen-secure" {
     destination = "/tmp/init.sh"
   }
 
+  provisioner "file" {
+    source      = "./scripts/final.sh"
+    destination = "/tmp/final.sh"
+  }
+
   provisioner "remote-exec" {
     inline = [
       "chmod +x /tmp/install.sh",
+      "chmod +x /tmp/final.sh",
       "chmod +x /tmp/init.sh",
-      "/tmp/install.sh ${element(var.ZEN_ADDRESSES, count.index)} ${var.ZEN_EMAIL} ${self.name}.crlsn.io eu secure",
+      "mkdir -p ~/.zen/blocks",
+      "mkdir -p ~/.zen/chainstate",
     ]
   }
 }
@@ -71,36 +78,13 @@ resource "scaleway_server" "zen-secure" {
 #     inline = [
 #       "~/bootstrap.sh ${element(scaleway_server.zen-secure.*.public_ip, count.index)}",
 #     ]
+
+
 #     connection {
 #       type        = "ssh"
 #       private_key = "${file("~/.ssh/scaleway_rsa")}"
 #       user        = "root"
 #       host        = "zen-secure-01.crlsn.io"
-#     }
-#   }
-
-
-#   # Final touches on configs and services
-#   provisioner "file" {
-#     source      = "./scripts/final.sh"
-#     destination = "/tmp/final.sh"
-#     connection {
-#       type        = "ssh"
-#       private_key = "${file("~/.ssh/scaleway_rsa")}"
-#       user        = "root"
-#       host        = "${element(scaleway_server.zen-secure.*.public_ip, count.index)}"
-#     }
-#   }
-#   provisioner "remote-exec" {
-#     inline = [
-#       "chmod +x /tmp/final.sh",
-#       "/tmp/final.sh ${element(scaleway_server.zen-secure.*.name, count.index)}.crlsn.io ${element(scaleway_server.zen-secure.*.public_ip, count.index)}",
-#     ]
-#     connection {
-#       type        = "ssh"
-#       private_key = "${file("~/.ssh/scaleway_rsa")}"
-#       user        = "root"
-#       host        = "${element(scaleway_server.zen-secure.*.public_ip, count.index)}"
 #     }
 #   }
 # }
