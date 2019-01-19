@@ -1,5 +1,5 @@
 # zen-nodes
-An experimental effort to automate setting up Horizen nodes
+An experimental effort to automate setting up Horizen nodes.  The scripts have yet to be migrated to execute all commands from a non-root user, so this project is not yet fully functional.
 
 ## Setup
 Set the following environment variables that Terraform will need:
