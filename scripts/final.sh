@@ -11,23 +11,9 @@ IPV4=$(dig $FQDN A +short)
 echo "chown blocks and chainstate folders recursively to the ${USER}"
 sudo chown -R $USER ~/.zen/{blocks,chainstate}
 
-echo "Create basic firewall rules"
-sudo ufw default allow outgoing
-sudo ufw default deny incoming
-sudo ufw allow ssh/tcp
-sudo ufw limit ssh/tcp
-sudo ufw allow http/tcp
-sudo ufw allow https/tcp
-sudo ufw allow 9033/tcp
-sudo ufw logging on
-sudo ufw -f enable
-sudo ufw status
-
-echo "Enable UFW with systemctl"
-sudo systemctl enable ufw
-
-# echo "Wait for the DNS TTL"
-# sleep 60
+echo "Verify correct FQDN is set"
+echo $FQDN
+sed -e 1b -e '$!d' $HOME/.bashrc
 
 echo "Install a certificate certbot will be used to generate and validate your certificate"
 sudo certbot certonly -n --agree-tos --register-unsafely-without-email --standalone -d $FQDN > /dev/null
@@ -38,29 +24,24 @@ sudo cp /etc/letsencrypt/live/$FQDN/chain.pem /usr/local/share/ca-certificates/c
 echo "Update the certificate store with the root CA copied"
 sudo update-ca-certificates
 
-# Add the certificate and key locations to zen.conf
-echo "tlscertpath=/etc/letsencrypt/live/$FQDN/cert.pem" >> $HOME/.zen/zen.conf
-echo "tlskeypath=/etc/letsencrypt/live/$FQDN/privkey.pem" >> $HOME/.zen/zen.conf
-
 echo "Allow the non-root user for zend access to the cert and private key"
 sudo chown -R root:sudo /etc/letsencrypt/
 sudo chmod -R 750 /etc/letsencrypt/
 
-# # Output network info
-# zen-cli getnetworkinfo
+echo "Stop and start zend to pick up the new configuration, certificate and private key"
+zen-cli stop && sleep 30 && zend && sleep 30
 
 ##########################################################
 
-# echo "Generate one new t_address"
-# zen-cli getnewaddress > /dev/null && zen-cli listaddresses | jq -r '.[1]'
-
-# t_address=`zen-cli listaddresses | jq -r '.[1]'`
+echo "Generate a new t_address"
+zen-cli getnewaddress > /dev/null && zen-cli listaddresses | jq -r '.[1]'
+t_address=`zen-cli listaddresses | jq -r '.[1]'`
 
 # Prompt admin to send 0.05 ZEN to newly-generated t_address
 echo "***********************************"
 echo "ADMIN: Send 0.05 ZEN to ${t_address}"
 
-echo "ADMIN: Set up z_ addresses"
+echo "ADMIN: Set up z_addresses"
 # Wait for node to acknowledge confirmed balance at newly-generated t_address
 # until sendToZAddresses | grep -m 1 "\"transparent\": \"0.0499\"" do sleep 10; done
 

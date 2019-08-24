@@ -6,8 +6,7 @@
   "scripts": {
     "apply": "terraform apply -auto-approve zen.tfplan",
     "destroy": "terraform destroy -auto-approve",
-    "plan": "terraform plan -out=zen.tfplan",
-    "test": "echo \"Error: no test specified\" && exit 1"
+    "plan": "terraform plan -out=zen.tfplan"
   },
   "repository": {
     "type": "git",
